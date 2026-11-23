@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ThinkRider</title>
+<style>
+:root{color-scheme:dark;--bg:#0A0A0F;--card:#13131A;--card2:#1C1C26;--line:#1F2937;--mut:#6B7280;--dim:#4B5563;--cy:#00E5FF;--bl:#0066FF;--yl:#FBBF24;--gr:#34D399;--or:#F97316;--vi:#A78BFA;--sky:#60A5FA;--rd:#EF4444;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:520px;margin:0 auto}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+.view{display:none;padding:16px}.view.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.lbl{font-size:10px;font-weight:600;letter-spacing:.05em;color:var(--dim);text-transform:uppercase}
+.mut{color:var(--mut)}
+.hero{text-align:center;padding:40px 0 20px}
+.hero h1{margin:8px 0 4px;font-size:32px;font-weight:900}
+.big{width:100%;padding:18px;border-radius:16px;font-size:17px;font-weight:600;color:#000;background:linear-gradient(90deg,var(--cy),var(--bl))}
+.link{background:none;color:var(--mut);font-size:13px;text-decoration:underline;display:block;margin:14px auto}
+.err{color:#F87171;font-size:13px;text-align:center;margin:12px 0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ib{background:none;font-size:20px;padding:6px 8px}
+.timer{display:flex;align-items:center;justify-content:space-between}
+.timer b{font:900 36px ui-monospace,Menlo,monospace}
+.rb{width:44px;height:44px;border-radius:50%;background:var(--card2);color:var(--mut);font-size:16px;margin-left:10px}
+.pb{width:52px;height:52px;border-radius:50%;color:#000;font-size:18px;font-weight:700;margin-left:10px;background:var(--gr)}
+.pb.run{background:var(--or)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.grid .card{margin:0}
+.tile .v{font-size:32px;font-weight:900;margin-top:10px}
+.tile .u{font-size:12px;color:var(--mut);font-weight:500;margin-left:4px}
+.ctl .hd{display:flex;justify-content:space-between;align-items:center}
+.ctl .val{text-align:center;font-size:52px;font-weight:900;margin:14px 0 0}
+.ctl .un{text-align:center;font-size:13px;color:var(--dim);margin-bottom:10px}
+input[type=range]{width:100%;accent-color:var(--c)}
+.row{display:flex;gap:8px;margin-top:12px}
+.sb{width:44px;height:44px;border-radius:10px;font-size:13px;font-weight:600;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c)}
+.ap{flex:1;border-radius:12px;font-size:15px;font-weight:700;color:#000;background:var(--c)}
+.log{font:13px ui-monospace,Menlo,monospace;color:var(--mut);text-align:center;min-height:18px}
+.wr{display:flex;gap:12px;align-items:center;cursor:pointer}
+.dt{width:48px;text-align:center;background:var(--card2);border-radius:10px;padding:8px 0;font-size:22px;font-weight:900}
+.dt small{display:block;font-size:11px;color:var(--mut);font-weight:500}
+.chips{display:flex;gap:12px;font-size:12px;font-weight:600;margin-top:4px;flex-wrap:wrap}
+.del{margin-left:auto;background:none;color:var(--dim);font-size:18px;padding:8px}
+.back{background:none;color:var(--sky);font-size:15px;padding:8px 0}
+svg{width:100%;height:160px;display:block;background:var(--card2);border-radius:12px}
+.xa{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:6px}
+</style>
+</head>
+<body>
+
+<section class="view on" id="scan">
+  <div class="hero">
+    <div style="font-size:52px">🚴</div>
+    <h1>ThinkRider</h1>
+    <div class="mut">Подключите велостанок</div>
+  </div>
+  <div class="err" id="scanErr"></div>
+  <button class="big" id="btnConn">Найти станок</button>
+  <button class="link" id="btnAll">Показать все Bluetooth-устройства</button>
+  <button class="link" id="btnHist0">История тренировок</button>
+</section>
+
+<section class="view" id="dash">
+  <div class="top">
+    <div><b id="devName">Велостанок</b><div style="font-size:12px;color:var(--gr)">● Подключено</div></div>
+    <div><button class="ib" id="btnHist">📈</button><button class="ib" id="btnDisc" style="color:var(--dim)">✕</button></div>
+  </div>
+  <div class="card timer">
+    <div><div class="lbl">Тренировка</div><b id="tm">00:00</b></div>
+    <div style="display:flex"><button class="rb" id="btnReset" title="Сохранить и сбросить">↺</button><button class="pb" id="btnPlay">▶</button></div>
+  </div>
+  <div class="grid">
+    <div class="card tile"><div class="lbl" style="color:var(--yl)">⚡ Мощность</div><div class="v"><span id="mP">0</span><span class="u">Вт</span></div></div>
+    <div class="card tile"><div class="lbl" style="color:var(--sky)">🔄 Каденс</div><div class="v"><span id="mC">0</span><span class="u">об/мин</span></div></div>
+    <div class="card tile"><div class="lbl" style="color:var(--vi)">💨 Скорость</div><div class="v"><span id="mS">0.0</span><span class="u">км/ч</span></div></div>
+    <div class="card tile"><div class="lbl" style="color:var(--gr)">➡ Дистанция</div><div class="v"><span id="mD">0.00</span><span class="u">км</span></div></div>
+  </div>
+  <div id="ctls"></div>
+  <div class="log" id="log"></div>
+</section>
+
+<section class="view" id="hist">
+  <button class="back" id="btnBack">‹ Назад</button>
+  <h2 style="margin:4px 0 16px">История</h2>
+  <div id="histBody"></div>
+</section>
+
+<script>
+const $=s=>document.querySelector(s);
+const show=id=>{document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));scrollTo(0,0)};
+const fmt=t=>{const h=t/3600|0,m=(t%3600)/60|0,s=t%60,p=n=>String(n).padStart(2,'0');return h?`${h}:${p(m)}:${p(s)}`:`${p(m)}:${p(s)}`};
+const KEY='saved_workouts';
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return []}};
+const persist=a=>{try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}};
+
+// ---- BLE ----
+let dev,cp,ctrl=false,pending=null,q=Promise.resolve(),prev='scan';
+const d={p:0,s:0,c:0};
+const log=t=>$('#log').textContent=t;
+const send=a=>{q=q.then(()=>cp&&cp.writeValueWithResponse(new Uint8Array(a))).catch(e=>log('✗ Ошибка записи: '+e.message))};
+const i16=v=>[v&255,(v>>8)&255];
+function command(bytes){if(!cp)return;if(!ctrl){pending=bytes;send([0]);}else send(bytes)}
+const setPower=w=>command([5,...i16(Math.max(0,Math.min(2000,w)))]);
+const setIncl=pct=>command([3,...i16(Math.max(-1000,Math.min(1000,Math.round(pct*10))))]);
+
+function parseBike(dv){
+  const f=dv.getUint16(0,true);let o=2;
+  const ok=n=>dv.byteLength>=o+n;
+  if(!(f&1)){if(!ok(2))return;d.s=dv.getUint16(o,true)/100;o+=2}
+  if(f&2)o+=2;
+  if(f&4){if(!ok(2))return;d.c=Math.round(dv.getUint16(o,true)/2);o+=2}
+  if(f&8)o+=2;
+  if(f&16)o+=3;
+  if(f&32)o+=2;
+  if(f&64){if(!ok(2))return;d.p=dv.getInt16(o,true);o+=2}
+  render();
+}
+function parseCP(dv){
+  if(dv.byteLength<3||dv.getUint8(0)!==0x80)return;
+  const req=dv.getUint8(1),res=dv.getUint8(2);
+  const msg={1:'✓ Команда 0x'+req.toString(16)+' выполнена',2:'✗ Операция не поддерживается',3:'✗ Некорректный параметр',4:'✗ Ошибка операции',5:'✗ Контроль не разрешён'}[res]||'? Ответ: '+res;
+  log(msg);
+  if(res===1&&req===0){ctrl=true;if(pending){const p=pending;pending=null;send(p)}}
+  if(res===4||res===5)ctrl=false;
+}
+async function connect(all){
+  $('#scanErr').textContent='';
+  if(!navigator.bluetooth){$('#scanErr').textContent='Этот браузер не поддерживает Web Bluetooth. На iPhone открой страницу в Bluefy, на компьютере и Android — в Chrome или Edge.';return}
+  try{
+    const opt={optionalServices:[0x1826,0x1818,0x1816]};
+    dev=await navigator.bluetooth.requestDevice(all?{...opt,acceptAllDevices:true}:{...opt,filters:[{services:[0x1826]}]});
+    $('#btnConn').textContent='Подключение…';
+    dev.addEventListener('gattserverdisconnected',onDisc);
+    const srv=await dev.gatt.connect();
+    const svc=await srv.getPrimaryService(0x1826);
+    const ibd=await svc.getCharacteristic(0x2ad2);
+    ibd.addEventListener('characteristicvaluechanged',e=>parseBike(e.target.value));
+    await ibd.startNotifications();
+    try{
+      cp=await svc.getCharacteristic(0x2ad9);
+      cp.addEventListener('characteristicvaluechanged',e=>parseCP(e.target.value));
+      await cp.startNotifications();
+      ctrl=false;send([0]);
+    }catch(e){cp=null;log('Управление недоступно: '+e.message)}
+    $('#devName').textContent=dev.name||'Велостанок';
+    show('dash');wake();
+  }catch(e){
+    if(e.name!=='NotFoundError')$('#scanErr').textContent='Ошибка: '+e.message;
+  }
+  $('#btnConn').textContent='Найти станок';
+}
+function onDisc(){
+  finish();cp=null;ctrl=false;pending=null;d.p=d.s=d.c=0;render();
+  show('scan');$('#scanErr').textContent='Станок отключён';
+}
+let wl;async function wake(){try{wl=await navigator.wakeLock.request('screen')}catch(e){}}
+
+// ---- Workout ----
+let run=false,sec=0,dist=0,samples=[],cads=[],start=Date.now(),timer;
+function render(){
+  $('#mP').textContent=d.p;$('#mC').textContent=d.c;$('#mS').textContent=d.s.toFixed(1);
+  $('#mD').textContent=dist.toFixed(2);$('#tm').textContent=fmt(sec);
+  $('#btnPlay').textContent=run?'⏸':'▶';$('#btnPlay').classList.toggle('run',run);
+  const cur=$('#cur-p');if(cur)cur.textContent='Текущее: '+d.p+' Вт';
+}
+function tick(){sec++;dist+=d.s/3600;samples.push(d.p);cads.push(d.c);render()}
+function startW(){
+  if(!sec)start=Date.now();
+  if(cp)send([7]);
+  run=true;timer=setInterval(tick,1000);render();
+}
+function pauseW(){if(cp)send([8,1]);run=false;clearInterval(timer);render()}
+function finish(){
+  if(run)pauseW();
+  if(sec>10){
+    const pw=samples.filter(x=>x>0);
+    const rec={id:Date.now(),date:start,dur:sec,dist,avgP:pw.length?Math.round(pw.reduce((a,b)=>a+b,0)/pw.length):0,maxP:Math.max(0,...samples),avgC:cads.length?Math.round(cads.reduce((a,b)=>a+b,0)/cads.length):0,samples};
+    const a=load();a.unshift(rec);persist(a);
+  }
+  sec=0;dist=0;samples=[];cads=[];render();
+}
+
+// ---- Controls ----
+const state={p:100,i:0};
+function ctl(o){
+  const el=document.createElement('div');el.className='card ctl';el.style.setProperty('--c',o.color);
+  const fv=v=>o.dec?v.toFixed(1):v;
+  el.innerHTML=`<div class="hd"><span class="lbl" style="color:${o.color}">${o.icon} ${o.title}</span><span class="mut" style="font-size:12px" id="${o.id}">${o.cur()}</span></div>
+  <div class="val">${fv(state[o.key])}</div><div class="un">${o.unit}</div>
+  <input type="range" min="${o.min}" max="${o.max}" step="${o.step}" value="${state[o.key]}">
+  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim)"><span>${o.min}${o.unit}</span><span>${o.max}${o.unit}</span></div>
+  <div class="row"></div>`;
+  const val=el.querySelector('.val'),rng=el.querySelector('input'),row=el.querySelector('.row');
+  const set=v=>{v=Math.max(o.min,Math.min(o.max,v));state[o.key]=v;rng.value=v;val.textContent=fv(v);o.live&&o.live()};
+  rng.oninput=()=>set(+rng.value);
+  const sb=(l,dv)=>{const b=document.createElement('button');b.className='sb';b.textContent=l;b.onclick=()=>set(state[o.key]+dv);return b};
+  const ap=document.createElement('button');ap.className='ap';ap.textContent='Применить';ap.onclick=()=>o.apply(state[o.key]);
+  row.append(sb('−'+o.big,-o.big),sb('−'+o.small,-o.small),ap,sb('+'+o.small,o.small),sb('+'+o.big,o.big));
+  $('#ctls').append(el);
+}
+ctl({key:'p',id:'cur-p',title:'Мощность',icon:'⚡',color:'var(--yl)',unit:'Вт',min:0,max:1000,step:5,small:1,big:10,cur:()=>'Текущее: 0 Вт',apply:setPower});
+ctl({key:'i',id:'cur-i',title:'Наклон',icon:'⛰',color:'var(--gr)',unit:'%',min:-10,max:20,step:0.5,small:0.5,big:1,dec:true,cur:()=>'Текущее: 0.0%',live:()=>{$('#cur-i').textContent='Цель: '+state.i.toFixed(1)+'%'},apply:setIncl});
+
+// ---- History ----
+function chart(s){
+  if(!s.length)return'';
+  const N=300,st=Math.max(1,Math.ceil(s.length/N)),pts=[];
+  for(let i=0;i<s.length;i+=st)pts.push(s[i]);
+  const mx=Math.max(...pts,1),nz=s.filter(x=>x>0),av=nz.length?nz.reduce((a,b)=>a+b,0)/nz.length:0;
+  const X=i=>pts.length>1?i*300/(pts.length-1):0,Y=v=>120-120*v/mx;
+  const line=pts.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  return`<div class="card"><div style="display:flex;justify-content:space-between"><span class="lbl">⚡ Мощность по времени</span><span style="color:var(--yl);font-size:12px;font-weight:600">avg ${Math.round(av)} Вт</span></div>
+  <svg viewBox="0 0 300 120" preserveAspectRatio="none" style="margin-top:10px">
+  ${[.25,.5,.75].map(r=>`<line x1="0" x2="300" y1="${120*r}" y2="${120*r}" stroke="#1F2937"/>`).join('')}
+  <line x1="0" x2="300" y1="${Y(av)}" y2="${Y(av)}" stroke="#FBBF24" stroke-opacity=".4" stroke-dasharray="4"/>
+  <polygon points="0,120 ${line} 300,120" fill="#FBBF24" fill-opacity=".18"/>
+  <polyline points="${line}" fill="none" stroke="#FBBF24" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
+  <div class="xa"><span>0:00</span><span>${fmt(s.length>>1)}</span><span>${fmt(s.length)}</span></div></div>`;
+}
+const MON=['ЯНВ','ФЕВ','МАР','АПР','МАЙ','ИЮН','ИЮЛ','АВГ','СЕН','ОКТ','НОЯ','ДЕК'];
+function histList(){
+  const a=load(),b=$('#histBody');
+  if(!a.length){b.innerHTML='<div class="mut" style="text-align:center;padding:60px 0">Нет сохранённых тренировок<br><small>Тренировка сохраняется при нажатии ↺ или при отключении станка</small></div>';return}
+  b.innerHTML='';
+  a.forEach(w=>{
+    const dt=new Date(w.date),r=document.createElement('div');r.className='card wr';
+    r.innerHTML=`<div class="dt">${dt.getDate()}<small>${MON[dt.getMonth()]}</small></div>
+    <div><div class="mut" style="font-size:13px">${dt.toLocaleString('ru-RU',{dateStyle:'medium',timeStyle:'short'})}</div>
+    <div class="chips"><span>⏱ ${fmt(w.dur)}</span><span>➡ ${w.dist.toFixed(2)} км</span><span>⚡ ${w.avgP} Вт</span></div></div>
+    <button class="del">🗑</button>`;
+    r.onclick=()=>detail(w);
+    r.querySelector('.del').onclick=e=>{e.stopPropagation();if(confirm('Удалить тренировку?')){persist(load().filter(x=>x.id!==w.id));histList()}};
+    b.append(r);
+  });
+}
+function detail(w){
+  const t=(l,v,c)=>`<div class="card tile" style="margin:0"><div class="lbl" style="color:${c}">${l}</div><div class="v" style="font-size:22px">${v}</div></div>`;
+  $('#histBody').innerHTML=`<button class="back" id="bk2">‹ Все тренировки</button>
+  <div class="grid">${t('Время',fmt(w.dur),'var(--sky)')}${t('Дистанция',w.dist.toFixed(2)+' км','var(--gr)')}${t('Средняя мощность',w.avgP+' Вт','var(--yl)')}${t('Макс. мощность',w.maxP+' Вт','var(--or)')}${t('Средний каденс',w.avgC+' об/мин','var(--vi)')}</div>${chart(w.samples)}`;
+  $('#bk2').onclick=histList;
+}
+function openHist(from){prev=from;histList();show('hist')}
+
+$('#btnConn').onclick=()=>connect(false);
+$('#btnAll').onclick=()=>connect(true);
+$('#btnHist0').onclick=()=>openHist('scan');
+$('#btnHist').onclick=()=>openHist('dash');
+$('#btnBack').onclick=()=>show(prev);
+$('#btnDisc').onclick=()=>{if(confirm('Отключиться от велостанка?')){finish();dev&&dev.gatt.connected&&dev.gatt.disconnect()}};
+$('#btnPlay').onclick=()=>run?pauseW():startW();
+$('#btnReset').onclick=finish;
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&dev&&dev.gatt.connected)wake()});
+render();
+</script>
+</body>
+</html>
